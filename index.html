@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Define CSS variables for consistent theming */
+        
         :root {
             --primary: #4f46e5;
             --secondary: #818cf8;
@@ -55,12 +55,12 @@
         
         /* Hide number input spin buttons for cleaner look */
         input[type="number"] {
-            -moz-appearance: textfield; /* Firefox */
+            -moz-appearance: textfield; 
         }
         
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none; /* Chrome, Safari, Edge */
+            -webkit-appearance: none; 
             margin: 0;
         }
         
@@ -117,7 +117,7 @@
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-800">
-    <!-- Chatbot Container and its functionality have been removed -->
+    
 
     <!-- Hero Section -->
     <div class="hero-gradient text-white py-16 px-4">
@@ -336,12 +336,6 @@
             const savingsAmount = document.getElementById('savings-amount');
             const savingsGoal = document.getElementById('savings-goal');
             
-            // Chatbot Elements (Removed)
-            // const chatbotBtn = document.getElementById('chatbotBtn');
-            // const chatbotWindow = document.getElementById('chatbotWindow');
-            // const chatbotBody = document.getElementById('chatbotBody');
-            // const chatInput = document.getElementById('chatInput');
-            // const sendMessageBtn = document.getElementById('sendMessageBtn');
 
             // State variables
             let expenses = []; // Array to store expense objects
@@ -380,10 +374,7 @@
                 'Other': 'fa-wallet'
             };
 
-            /**
-             * Initializes the Chart.js instances for Expense Breakdown (Doughnut)
-             * and Spending Trends (Line).
-             */
+    
             function initCharts() {
                 // Expense Chart (Doughnut)
                 const expenseCtx = document.getElementById('expense-chart').getContext('2d');
@@ -477,11 +468,7 @@
                 });
             }
 
-            /**
-             * Formats a number into Indian Rupees currency string.
-             * @param {number} amount - The number to format.
-             * @returns {string} The formatted currency string.
-             */
+          
             function formatCurrency(amount) {
                 return '₹' + amount.toLocaleString('en-IN', {
                     maximumFractionDigits: 2,
@@ -489,10 +476,6 @@
                 });
             }
 
-            /**
-             * Updates all financial summary displays (income, expenses, balance, savings progress).
-             * Also triggers chart updates and saves data to local storage.
-             */
             function updateSummary() {
                 const income = parseFloat(incomeInput.value) || 0;
                 const savingsGoalValue = parseFloat(savingsInput.value) || 0;
@@ -543,9 +526,7 @@
                 saveToLocalStorage(); // Persist data
             }
 
-            /**
-             * Updates the Chart.js instances with current expense and income data.
-             */
+       
             function updateCharts() {
                 const income = parseFloat(incomeInput.value) || 0;
                 const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
@@ -576,9 +557,6 @@
                 trendChart.update();
             }
 
-            /**
-             * Renders the list of expenses, applying filtering based on the active tab.
-             */
             function renderExpenses() {
                 // Display a message if no expenses are added
                 if (expenses.length === 0) {
@@ -688,9 +666,7 @@
                 });
             }
 
-            /**
-             * Generates and displays personalized savings suggestions based on financial data.
-             */
+           
             function generateSuggestions() {
                 const income = parseFloat(incomeInput.value) || 0;
                 const savingsGoalValue = parseFloat(savingsInput.value) || 0;
@@ -862,14 +838,7 @@
                 }
             }
             
-            // Chatbot Functions (Removed)
-            // function toggleChatbot() { /* ... */ }
-            // function addUserMessage(message) { /* ... */ }
-            // function addBotMessage(message) { /* ... */ }
-            // function showTypingIndicator() { /* ... */ }
-            // function hideTypingIndicator() { /* ... */ }
-            // function generateBotResponse(userMessage) { /* ... */ }
-            // function handleUserMessage() { /* ... */ }
+    
 
             // Event listeners
             incomeInput.addEventListener('input', updateSummary);
