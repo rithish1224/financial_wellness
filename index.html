@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Wellness Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Define CSS variables for consistent theming */
+        :root {
+            --primary: #4f46e5;
+            --secondary: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+        
+        /* Hero section gradient background */
+        .hero-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+        
+        /* Card styling for dashboard sections */
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        /* Hover effect for cards */
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Progress bar container */
+        .progress-bar {
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #e2e8f0;
+        }
+        
+        /* Progress bar fill */
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+            background: linear-gradient(90deg, var(--success), #34d399);
+        }
+        
+        /* Hide number input spin buttons for cleaner look */
+        input[type="number"] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none; /* Chrome, Safari, Edge */
+            margin: 0;
+        }
+        
+        /* Styling for tab buttons */
+        .tabs .tab {
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        /* Active tab styling */
+        .tabs .tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        /* Expense category tag styling */
+        .expense-category {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        /* Chart container to manage aspect ratio */
+        .chart-container {
+            height: 320px;
+            position: relative;
+        }
+        
+        /* Specific styling for savings goal section */
+        .savings-goal {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-left: 4px solid var(--primary);
+        }
+        
+        /* Specific styling for financial summary section */
+        .financial-summary {
+            background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+            border-left: 4px solid var(--success);
+        }
+        
+        /* Pulse animation for buttons/elements */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+    <!-- Chatbot Container and its functionality have been removed -->
+
+    <!-- Hero Section -->
+    <div class="hero-gradient text-white py-16 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Financial Wellness Dashboard</h1>
+            <p class="text-xl opacity-90 max-w-2xl mx-auto">Smart budgeting for financial freedom</p>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Financial Summary Card -->
+            <div class="card p-6 financial-summary lg:col-span-1">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">Financial Summary</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Total Income:</span>
+                        <span id="total-income" class="font-bold text-lg">₹0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Total Expenses:</span>
+                        <span id="total-expenses" class="font-bold text-lg">₹0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center py-3 border-y border-gray-200 my-2">
+                        <span class="font-bold">Remaining Balance:</span>
+                        <span id="remaining-balance" class="font-bold text-xl text-green-600">₹0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">After Savings:</span>
+                        <span id="after-savings" class="font-bold text-lg">₹0.00</span>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-medium">Savings Goal Progress</span>
+                        <span id="savings-percentage" class="font-medium">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="savings-progress" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="text-right mt-1 text-sm text-gray-600">
+                        <span id="savings-amount">₹0 saved</span> of <span id="savings-goal">₹0 goal</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Income & Savings Card -->
+            <div class="card p-6 lg:col-span-2">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Income & Savings</h2>
+                    <button id="reset-btn" class="text-sm text-gray-500 hover:text-red-500 flex items-center">
+                        <i class="fas fa-redo mr-1"></i> Reset All
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 mb-2 font-medium" for="income">Monthly Income</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
+                            <input type="number" id="income" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="0.00" min="0" step="100">
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Your total monthly take-home pay</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 mb-2 font-medium" for="savings">Monthly Savings Goal</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
+                            <input type="number" id="savings" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="0.00" min="0" step="100">
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Recommended: 20% of income</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8 savings-goal p-4 rounded-xl">
+                    <h3 class="font-bold text-gray-800 mb-2 flex items-center">
+                        <i class="fas fa-bullseye mr-2 text-indigo-600"></i> Savings Goal
+                    </h3>
+                    <p class="text-gray-700">Set a monthly savings target to build your emergency fund and achieve financial security.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Section -->
+        <div class="card p-6 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Monthly Expenses</h2>
+                <div class="flex space-x-3">
+                    <button id="add-expense-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl flex items-center shadow-md pulse">
+                        <i class="fas fa-plus mr-2"></i> Add Expense
+                    </button>
+                    <button id="analyze-btn" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl flex items-center shadow-md">
+                        <i class="fas fa-chart-pie mr-2"></i> Analyze Spending
+                    </button>
+                </div>
+            </div>
+
+            <!-- Expense Input Form (initially hidden) -->
+            <div id="expense-form" class="hidden mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="md:col-span-4">
+                        <label class="block text-gray-700 mb-2" for="expense-name">Expense Category</label>
+                        <div class="relative">
+                            <select id="expense-category" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none">
+                                <option value="Housing">Housing</option>
+                                <option value="Food">Food & Dining</option>
+                                <option value="Transportation">Transportation</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Insurance">Insurance</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Personal">Personal Care</option>
+                                <option value="Debt">Debt Payments</option>
+                                <option value="Savings">Savings & Investments</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-3.5 text-gray-400 pointer-events-none"></i>
+                        </div>
+                    </div>
+                    <div class="md:col-span-4">
+                        <label class="block text-gray-700 mb-2" for="expense-description">Description</label>
+                        <input type="text" id="expense-description" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g. Rent, Groceries">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-gray-700 mb-2" for="expense-amount">Amount</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₹</span>
+                            <input type="number" id="expense-amount" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="0.00" min="0" step="10">
+                        </div>
+                    </div>
+                    <div class="md:col-span-1 flex items-end">
+                        <button id="save-expense-btn" class="bg-green-600 hover:bg-green-700 text-white w-full h-[42px] rounded-xl flex items-center justify-center">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense Filter Tabs -->
+            <div class="tabs flex space-x-2 mb-4">
+                <div class="tab active" data-tab="all">All Expenses</div>
+                <div class="tab" data-tab="housing">Housing</div>
+                <div class="tab" data-tab="food">Food</div>
+                <div class="tab" data-tab="transportation">Transportation</div>
+            </div>
+
+            <!-- Expenses List -->
+            <div id="expenses-list" class="space-y-3">
+                <!-- Expenses will be added here dynamically by JavaScript -->
+                <div class="text-center py-12 text-gray-400">
+                    <i class="fas fa-receipt text-4xl mb-4"></i>
+                    <p>No expenses added yet.</p>
+                    <p class="text-sm mt-2">Click "Add Expense" to start tracking your spending</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">Expense Breakdown</h2>
+                <div class="chart-container">
+                    <canvas id="expense-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">Spending Trends</h2>
+                <div class="chart-container">
+                    <canvas id="trend-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggestions Section (initially hidden) -->
+        <div id="savings-suggestions" class="card p-6 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Personalized Savings Suggestions</h2>
+                <button id="close-suggestions" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="suggestions-content" class="space-y-6">
+                <!-- Suggestions will be added here dynamically by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const incomeInput = document.getElementById('income');
+            const savingsInput = document.getElementById('savings');
+            const addExpenseBtn = document.getElementById('add-expense-btn');
+            const expenseForm = document.getElementById('expense-form');
+            const expenseCategory = document.getElementById('expense-category');
+            const expenseDescription = document.getElementById('expense-description');
+            const expenseAmount = document.getElementById('expense-amount');
+            const saveExpenseBtn = document.getElementById('save-expense-btn');
+            const expensesList = document.getElementById('expenses-list');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const savingsSuggestions = document.getElementById('savings-suggestions');
+            const closeSuggestions = document.getElementById('close-suggestions');
+            const resetBtn = document.getElementById('reset-btn');
+            const tabs = document.querySelectorAll('.tab');
+            const totalIncomeSpan = document.getElementById('total-income');
+            const totalExpensesSpan = document.getElementById('total-expenses');
+            const remainingBalanceSpan = document.getElementById('remaining-balance');
+            const afterSavingsSpan = document.getElementById('after-savings');
+            const savingsProgress = document.getElementById('savings-progress');
+            const savingsPercentage = document.getElementById('savings-percentage');
+            const savingsAmount = document.getElementById('savings-amount');
+            const savingsGoal = document.getElementById('savings-goal');
+            
+            // Chatbot Elements (Removed)
+            // const chatbotBtn = document.getElementById('chatbotBtn');
+            // const chatbotWindow = document.getElementById('chatbotWindow');
+            // const chatbotBody = document.getElementById('chatbotBody');
+            // const chatInput = document.getElementById('chatInput');
+            // const sendMessageBtn = document.getElementById('sendMessageBtn');
+
+            // State variables
+            let expenses = []; // Array to store expense objects
+            let expenseChart = null; // Chart.js instance for expense breakdown
+            let trendChart = null; // Chart.js instance for spending trends
+            let editingIndex = -1; // Stores the index of the expense being edited, -1 if adding new
+            let activeTab = 'all'; // Current active tab for filtering expenses
+
+            // Color mapping for expense categories (for charts and category tags)
+            const categoryColors = {
+                'Housing': '#3b82f6', // Blue
+                'Food': '#ef4444', // Red
+                'Transportation': '#f59e0b', // Orange
+                'Utilities': '#10b981', // Green
+                'Insurance': '#6366f1', // Indigo
+                'Healthcare': '#ec4899', // Pink
+                'Entertainment': '#8b5cf6', // Purple
+                'Personal': '#64748b', // Slate
+                'Debt': '#f97316', // Dark Orange
+                'Savings': '#06b6d4', // Cyan
+                'Other': '#94a3b8' // Gray
+            };
+
+            // Icon mapping for expense categories (for list display)
+            const categoryIcons = {
+                'Housing': 'fa-home',
+                'Food': 'fa-utensils',
+                'Transportation': 'fa-car',
+                'Utilities': 'fa-bolt',
+                'Insurance': 'fa-shield-alt',
+                'Healthcare': 'fa-heartbeat',
+                'Entertainment': 'fa-film',
+                'Personal': 'fa-user',
+                'Debt': 'fa-credit-card',
+                'Savings': 'fa-piggy-bank',
+                'Other': 'fa-wallet'
+            };
+
+            /**
+             * Initializes the Chart.js instances for Expense Breakdown (Doughnut)
+             * and Spending Trends (Line).
+             */
+            function initCharts() {
+                // Expense Chart (Doughnut)
+                const expenseCtx = document.getElementById('expense-chart').getContext('2d');
+                expenseChart = new Chart(expenseCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: [], // Will be populated dynamically
+                        datasets: [{
+                            data: [], // Will be populated dynamically
+                            backgroundColor: [], // Will be populated dynamically
+                            borderWidth: 0,
+                            hoverOffset: 15
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, // Allow chart to fill container
+                        plugins: {
+                            legend: {
+                                position: 'right', // Legend on the right side
+                                labels: {
+                                    font: {
+                                        size: 12
+                                    },
+                                    padding: 20
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    // Custom tooltip to show currency
+                                    label: function(context) {
+                                        return `${context.label}: ${formatCurrency(context.raw)}`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '65%' // Size of the doughnut hole
+                    }
+                });
+
+                // Trend Chart (Line)
+                const trendCtx = document.getElementById('trend-chart').getContext('2d');
+                trendChart = new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Current Month'], // Simplified for current month data
+                        datasets: [{
+                            label: 'Income',
+                            data: [0], // Will be updated dynamically
+                            borderColor: '#10b981', // Green
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)', // Light green fill
+                            tension: 0.4, // Smooth line
+                            fill: true
+                        }, {
+                            label: 'Expenses',
+                            data: [0], // Will be updated dynamically
+                            borderColor: '#ef4444', // Red
+                            backgroundColor: 'rgba(239, 68, 68, 0.05)', // Light red fill
+                            tension: 0.4, // Smooth line
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, // Allow chart to fill container
+                        plugins: {
+                            legend: {
+                                position: 'top', // Legend on top
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)' // Light grid lines
+                                },
+                                ticks: {
+                                    // Custom tick format for currency
+                                    callback: function(value) {
+                                        return '₹' + value.toLocaleString('en-IN');
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false // No vertical grid lines
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            /**
+             * Formats a number into Indian Rupees currency string.
+             * @param {number} amount - The number to format.
+             * @returns {string} The formatted currency string.
+             */
+            function formatCurrency(amount) {
+                return '₹' + amount.toLocaleString('en-IN', {
+                    maximumFractionDigits: 2,
+                    minimumFractionDigits: 2
+                });
+            }
+
+            /**
+             * Updates all financial summary displays (income, expenses, balance, savings progress).
+             * Also triggers chart updates and saves data to local storage.
+             */
+            function updateSummary() {
+                const income = parseFloat(incomeInput.value) || 0;
+                const savingsGoalValue = parseFloat(savingsInput.value) || 0;
+                const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+                const remainingBalance = income - totalExpenses;
+                const afterSavings = remainingBalance - savingsGoalValue;
+
+                // Update text content for summary figures
+                totalIncomeSpan.textContent = formatCurrency(income);
+                totalExpensesSpan.textContent = formatCurrency(totalExpenses);
+                remainingBalanceSpan.textContent = formatCurrency(remainingBalance);
+                afterSavingsSpan.textContent = formatCurrency(afterSavings);
+                savingsGoal.textContent = formatCurrency(savingsGoalValue);
+                
+                // Update savings progress bar and text
+                if (savingsGoalValue > 0) {
+                    // Calculate progress, ensuring it's not negative and capped at 100%
+                    const progress = Math.min((Math.max(0, remainingBalance) / savingsGoalValue) * 100, 100);
+                    savingsProgress.style.width = `${progress}%`;
+                    savingsPercentage.textContent = `${Math.round(progress)}%`;
+                    // Display actual amount saved towards goal, not exceeding goal and not negative
+                    savingsAmount.textContent = formatCurrency(Math.min(Math.max(0, remainingBalance), savingsGoalValue));
+                } else {
+                    savingsProgress.style.width = '0%';
+                    savingsPercentage.textContent = '0%';
+                    savingsAmount.textContent = formatCurrency(0);
+                }
+
+                // Change color of remaining balance based on its value
+                if (remainingBalance >= 0) {
+                    remainingBalanceSpan.classList.remove('text-red-600');
+                    remainingBalanceSpan.classList.add('text-green-600');
+                } else {
+                    remainingBalanceSpan.classList.remove('text-green-600');
+                    remainingBalanceSpan.classList.add('text-red-600');
+                }
+
+                // Change color of after savings balance based on its value
+                if (afterSavings >= 0) {
+                    afterSavingsSpan.classList.remove('text-red-600');
+                    afterSavingsSpan.classList.add('text-green-600');
+                } else {
+                    afterSavingsSpan.classList.remove('text-green-600');
+                    afterSavingsSpan.classList.add('text-red-600');
+                }
+
+                updateCharts(); // Update charts with new data
+                saveToLocalStorage(); // Persist data
+            }
+
+            /**
+             * Updates the Chart.js instances with current expense and income data.
+             */
+            function updateCharts() {
+                const income = parseFloat(incomeInput.value) || 0;
+                const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
+                // Group expenses by category for the Doughnut chart
+                const categories = {};
+                expenses.forEach(expense => {
+                    if (!categories[expense.category]) {
+                        categories[expense.category] = 0;
+                    }
+                    categories[expense.category] += expense.amount;
+                });
+
+                // Update expense breakdown chart (Doughnut)
+                const expenseLabels = Object.keys(categories);
+                const expenseData = Object.values(categories);
+                // Map category labels to their defined colors
+                const backgroundColors = expenseLabels.map(label => categoryColors[label] || '#94a3b8');
+
+                expenseChart.data.labels = expenseLabels;
+                expenseChart.data.datasets[0].data = expenseData;
+                expenseChart.data.datasets[0].backgroundColor = backgroundColors;
+                expenseChart.update();
+
+                // Update spending trends chart (Line) for the current month
+                trendChart.data.datasets[0].data = [income];
+                trendChart.data.datasets[1].data = [totalExpenses];
+                trendChart.update();
+            }
+
+            /**
+             * Renders the list of expenses, applying filtering based on the active tab.
+             */
+            function renderExpenses() {
+                // Display a message if no expenses are added
+                if (expenses.length === 0) {
+                    expensesList.innerHTML = `
+                        <div class="text-center py-12 text-gray-400">
+                            <i class="fas fa-receipt text-4xl mb-4"></i>
+                            <p>No expenses added yet.</p>
+                            <p class="text-sm mt-2">Click "Add Expense" to start tracking your spending</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Filter expenses based on the active tab
+                let filteredExpenses = expenses;
+                if (activeTab !== 'all') {
+                    // Filter by exact category match (case-insensitive)
+                    filteredExpenses = expenses.filter(expense => 
+                        expense.category.toLowerCase() === activeTab
+                    );
+                }
+
+                // Display a message if no expenses match the current filter
+                if (filteredExpenses.length === 0) {
+                    expensesList.innerHTML = `
+                        <div class="text-center py-12 text-gray-400">
+                            <i class="fas fa-folder-open text-4xl mb-4"></i>
+                            <p>No expenses in this category.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                expensesList.innerHTML = ''; // Clear existing list
+                filteredExpenses.forEach((expense) => {
+                    // Find the original index of the expense in the 'expenses' array
+                    // This is crucial for editing/deleting the correct item after filtering
+                    const originalIndex = expenses.findIndex(e => 
+                        e.category === expense.category && 
+                        e.description === expense.description && 
+                        e.amount === expense.amount &&
+                        e.date.getTime() === expense.date.getTime() // Compare timestamps for date
+                    );
+
+                    const expenseCard = document.createElement('div');
+                    expenseCard.className = 'expense-card card p-4 transition-all duration-200';
+                    expenseCard.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 ${expense.category === 'Savings' ? 'bg-green-100 text-green-700' : 'bg-indigo-100 text-indigo-700'}">
+                                    <i class="fas ${categoryIcons[expense.category] || 'fa-wallet'}"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium text-gray-800">${expense.description || expense.category}</h3>
+                                    <div class="flex items-center mt-1">
+                                        <span class="expense-category" style="background-color: ${categoryColors[expense.category] || '#94a3b8'}; color: white;">
+                                            ${expense.category}
+                                        </span>
+                                        <span class="text-xs text-gray-500 ml-2">${expense.date.toLocaleDateString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="font-bold text-gray-800 mr-4">${formatCurrency(expense.amount)}</span>
+                                <button class="edit-expense-btn text-indigo-500 hover:text-indigo-700 p-2 mr-1" data-index="${originalIndex}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="delete-expense-btn text-red-500 hover:text-red-700 p-2" data-index="${originalIndex}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    expensesList.appendChild(expenseCard);
+                });
+
+                // Attach event listeners for delete buttons
+                document.querySelectorAll('.delete-expense-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        expenses.splice(index, 1); // Remove expense from array
+                        renderExpenses(); // Re-render list
+                        updateSummary(); // Update summary figures
+                    });
+                });
+
+                // Attach event listeners for edit buttons
+                document.querySelectorAll('.edit-expense-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        const expense = expenses[index];
+                        // Populate form fields with expense data
+                        expenseCategory.value = expense.category;
+                        expenseDescription.value = expense.description || '';
+                        expenseAmount.value = expense.amount;
+                        editingIndex = index; // Set editing index
+                        
+                        // Show the expense form if hidden
+                        if (expenseForm.classList.contains('hidden')) {
+                            expenseForm.classList.remove('hidden');
+                        }
+                        
+                        // Change save button text to "Update"
+                        saveExpenseBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Update Expense';
+                        expenseDescription.focus(); // Focus on description field
+                    });
+                });
+            }
+
+            /**
+             * Generates and displays personalized savings suggestions based on financial data.
+             */
+            function generateSuggestions() {
+                const income = parseFloat(incomeInput.value) || 0;
+                const savingsGoalValue = parseFloat(savingsInput.value) || 0;
+                const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+                const remainingBalance = income - totalExpenses;
+                const afterSavings = remainingBalance - savingsGoalValue;
+
+                savingsSuggestions.classList.remove('hidden'); // Show suggestions section
+                const suggestionsContent = document.getElementById('suggestions-content');
+                suggestionsContent.innerHTML = ''; // Clear previous suggestions
+
+                // Calculate expense percentages for detailed analysis
+                const categories = {};
+                expenses.forEach(expense => {
+                    if (!categories[expense.category]) {
+                        categories[expense.category] = 0;
+                    }
+                    categories[expense.category] += expense.amount;
+                });
+
+                // Determine overall financial health status
+                let healthStatus = 'Excellent';
+                let healthColor = 'text-green-600';
+                let healthIcon = 'fa-smile-beam';
+                
+                if (afterSavings < 0) {
+                    healthStatus = 'Needs Attention';
+                    healthColor = 'text-red-600';
+                    healthIcon = 'fa-frown';
+                } else if (afterSavings < income * 0.1) {
+                    healthStatus = 'Good';
+                    healthColor = 'text-yellow-600';
+                    healthIcon = 'fa-smile';
+                }
+
+                // Add Financial Health summary to suggestions
+                suggestionsContent.innerHTML += `
+                    <div class="flex items-start p-4 bg-gray-50 rounded-xl">
+                        <div class="text-3xl ${healthColor} mr-4">
+                            <i class="fas ${healthIcon}"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-gray-800 mb-1">Financial Health: <span class="${healthColor}">${healthStatus}</span></h3>
+                            <p class="text-gray-700">${afterSavings >= 0 ? 
+                                `You're meeting your savings goal with ${formatCurrency(afterSavings)} remaining` : 
+                                `You're falling short of your savings goal by ${formatCurrency(Math.abs(afterSavings))}`
+                            }</p>
+                        </div>
+                    </div>
+                `;
+
+                // Add Spending Analysis by category
+                suggestionsContent.innerHTML += `
+                    <div class="mt-6">
+                        <h3 class="font-bold text-lg text-gray-800 mb-4">Spending Analysis</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                `;
+
+                // Sort categories by amount spent for display
+                const sortedCategories = Object.entries(categories).sort(([, a], [, b]) => b - a);
+
+                sortedCategories.forEach(([category, amount]) => {
+                    const percentage = totalExpenses > 0 ? (amount / totalExpenses * 100).toFixed(1) : 0;
+                    
+                    suggestionsContent.innerHTML += `
+                        <div class="bg-white p-4 rounded-xl border border-gray-200">
+                            <div class="flex justify-between mb-2">
+                                <span class="font-medium">${category}</span>
+                                <span class="font-bold">${percentage}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="h-2.5 rounded-full" style="width: ${percentage}%; background-color: ${categoryColors[category] || '#94a3b8'}"></div>
+                            </div>
+                            <div class="mt-2 text-sm text-gray-600">${formatCurrency(amount)} spent</div>
+                        </div>
+                    `;
+                });
+
+                suggestionsContent.innerHTML += `
+                        </div>
+                    </div>
+                `;
+
+                // Savings recommendations
+                suggestionsContent.innerHTML += `
+                    <div class="mt-6">
+                        <h3 class="font-bold text-lg text-gray-800 mb-4">Recommendations</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="text-green-600 mt-1 mr-3">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Increase Savings Rate</h4>
+                                    <p class="text-gray-700">Aim to save at least 20% of your income. You're currently saving ${income > 0 ? ((savingsGoalValue/income)*100).toFixed(1) : '0'}%.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-green-600 mt-1 mr-3">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Review Top Categories</h4>
+                                    <p class="text-gray-700">Your highest spending categories are ${Object.keys(categories).sort((a, b) => categories[b] - categories[a]).slice(0, 2).join(' and ')}. Look for ways to reduce these expenses.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-green-600 mt-1 mr-3">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Automate Savings</h4>
+                                    <p class="text-gray-700">Set up automatic transfers to your savings account right after you get paid.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Scroll to suggestions
+                savingsSuggestions.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+
+            // Save data to local storage
+            function saveToLocalStorage() {
+                const data = {
+                    income: incomeInput.value,
+                    savings: savingsInput.value,
+                    expenses: expenses.map(expense => ({
+                        ...expense,
+                        date: expense.date.getTime() // Convert date to timestamp for storage
+                    }))
+                };
+                localStorage.setItem('financialData', JSON.stringify(data));
+            }
+
+            // Load data from local storage
+            function loadFromLocalStorage() {
+                const data = JSON.parse(localStorage.getItem('financialData'));
+                if (data) {
+                    incomeInput.value = data.income || '';
+                    savingsInput.value = data.savings || '';
+                    expenses = data.expenses ? data.expenses.map(expense => ({
+                        ...expense,
+                        date: new Date(expense.date)
+                    })) : [];
+                    
+                    renderExpenses();
+                    updateSummary();
+                }
+            }
+
+            // Reset all data
+            function resetAll() {
+                if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+                    incomeInput.value = '';
+                    savingsInput.value = '';
+                    expenses = [];
+                    editingIndex = -1;
+                    
+                    saveExpenseBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    expenseForm.classList.add('hidden');
+                    
+                    renderExpenses();
+                    updateSummary();
+                    localStorage.removeItem('financialData');
+                }
+            }
+            
+            // Chatbot Functions (Removed)
+            // function toggleChatbot() { /* ... */ }
+            // function addUserMessage(message) { /* ... */ }
+            // function addBotMessage(message) { /* ... */ }
+            // function showTypingIndicator() { /* ... */ }
+            // function hideTypingIndicator() { /* ... */ }
+            // function generateBotResponse(userMessage) { /* ... */ }
+            // function handleUserMessage() { /* ... */ }
+
+            // Event listeners
+            incomeInput.addEventListener('input', updateSummary);
+            savingsInput.addEventListener('input', updateSummary);
+
+            addExpenseBtn.addEventListener('click', function() {
+                expenseForm.classList.toggle('hidden');
+                if (!expenseForm.classList.contains('hidden')) {
+                    expenseDescription.focus();
+                    saveExpenseBtn.innerHTML = '<i class="fas fa-check"></i>'; // Reset button text when opening form
+                    editingIndex = -1; // Ensure we are adding, not editing
+                    // Clear fields when opening for new entry
+                    expenseCategory.value = 'Housing';
+                    expenseDescription.value = '';
+                    expenseAmount.value = '';
+                }
+            });
+
+            saveExpenseBtn.addEventListener('click', function() {
+                const category = expenseCategory.value;
+                const description = expenseDescription.value.trim();
+                const amount = parseFloat(expenseAmount.value);
+
+                // --- START DEBUGGING LOGS FOR EXPENSE ADDITION ---
+                console.log('--- Attempting to save/update expense ---');
+                console.log('Category selected:', category);
+                console.log('Description entered:', description);
+                console.log('Amount entered (raw):', expenseAmount.value);
+                console.log('Amount parsed (parseFloat):', amount);
+                console.log('Is amount NaN?', isNaN(amount));
+                console.log('Is amount <= 0?', amount <= 0);
+                // --- END DEBUGGING LOGS ---
+
+                if (!category) {
+                    window.alert('Please select an expense category.');
+                    return;
+                }
+                if (isNaN(amount) || amount <= 0) {
+                    window.alert('Please enter a valid positive number for the expense amount.');
+                    return;
+                }
+
+                const expenseData = {
+                    category,
+                    description: description || category,
+                    amount,
+                    date: new Date()
+                };
+
+                if (editingIndex >= 0) {
+                    // Update existing expense
+                    console.log('Updating existing expense at index:', editingIndex, 'with data:', expenseData);
+                    expenses[editingIndex] = expenseData;
+                    editingIndex = -1;
+                } else {
+                    // Add new expense
+                    console.log('Adding new expense with data:', expenseData);
+                    expenses.push(expenseData);
+                }
+
+                console.log('Current expenses array after modification:', expenses); // Log the array after modification
+
+                expenseCategory.value = 'Housing';
+                expenseDescription.value = '';
+                expenseAmount.value = '';
+                expenseForm.classList.add('hidden');
+
+                renderExpenses();
+                updateSummary();
+                console.log('Expense save/update process completed. UI refreshed.');
+            });
+
+            analyzeBtn.addEventListener('click', generateSuggestions);
+            
+            closeSuggestions.addEventListener('click', function() {
+                savingsSuggestions.classList.add('hidden');
+            });
+            
+            resetBtn.addEventListener('click', resetAll);
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update activeTab state
+                    activeTab = this.getAttribute('data-tab');
+                    
+                    // Re-render expenses
+                    renderExpenses();
+                });
+            });
+            
+            
+            initCharts();
+            loadFromLocalStorage();
+            updateSummary();
+        });
+    </script>
+</body>
+</html>
